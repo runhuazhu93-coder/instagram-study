@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instagram Stories — Study Prototype</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  #phone {
+    width: 340px;
+    height: 620px;
+    background: #000;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    border: 6px solid #1c1c1c;
+    outline: 1px solid #333;
+  }
+
+  /* ── STORY VIEW ── */
+  #story-view {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #story-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  /* Progress bars */
+  #progress-bar {
+    display: flex;
+    gap: 4px;
+    padding: 12px 12px 0;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+  }
+  .bar-track {
+    flex: 1;
+    height: 2px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #fff;
+    width: 0%;
+  }
+
+  /* Header */
+  #header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    position: absolute;
+    top: 24px; left: 0; right: 0;
+    z-index: 10;
+  }
+  #avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #c084fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  #username { color: #fff; font-size: 13px; font-weight: 600; line-height: 1.2; }
+  #time-ago { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
+
+  /* Header right icons (mute / close) */
+  #header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  #header-right svg { display: block; }
+
+  /* Tap zones */
+  #tap-left, #tap-right {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    z-index: 20;
+    cursor: pointer;
+  }
+  #tap-left  { left: 0;   width: 38%; }
+  #tap-right { right: 0;  width: 62%; }
+
+  /* Caption overlay */
+  .caption-overlay {
+    position: absolute;
+    bottom: 90px;
+    left: 0; right: 0;
+    padding: 0 20px;
+    z-index: 9;
+    display: flex;
+    justify-content: center;
+  }
+  .caption-box {
+    background: rgba(0,0,0,0.55);
+    border-radius: 10px;
+    padding: 8px 14px;
+    text-align: left;
+    max-width: 240px;
+    backdrop-filter: blur(4px);
+  }
+  .caption-text {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* ── BOTTOM BAR ── */
+  #bottom-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 15;
+    /* subtle gradient so bar is readable over any image */
+    background: linear-gradient(to top, #000 0%, #000 80%, transparent 100%);
+  }
+  #msg-input {
+    flex: 1;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    border-radius: 24px;
+    padding: 9px 16px;
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: default;
+    user-select: none;
+  }
+  #bottom-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  #bottom-icons svg {
+    display: block;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.15s;
+  }
+  #bottom-icons svg:hover { opacity: 1; }
+
+  /* ── REVIEW VIEW ── */
+  #review-view {
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    background: #111;
+    overflow-y: auto;
+  }
+  #review-title {
+    padding: 20px 16px 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  #review-subtitle {
+    padding: 0 16px 14px;
+    color: rgba(255,255,255,0.45);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  #thumb-row { display: flex; flex-direction: column; }
+  .thumb-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 0.5px solid #222;
+    transition: background 0.15s;
+  }
+  .thumb-item:hover { background: #1a1a1a; }
+  .thumb-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+  }
+  .thumb-label { color: #fff; font-size: 13px; font-weight: 600; }
+  .thumb-type  { color: rgba(255,255,255,0.45); font-size: 11px; margin-top: 3px; }
+  .thumb-arrow { margin-left: auto; color: rgba(255,255,255,0.3); font-size: 20px; }
+
+  #review-footer { padding: 14px 16px 20px; }
+  #continue-btn {
+    background: #fff;
+    color: #000;
+    border-radius: 28px;
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: -0.1px;
+  }
+  #continue-btn:hover { background: #e5e5e5; }
+
+  /* Hint */
+  #hint {
+    margin-top: 14px;
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="phone">
+
+  <!-- STORY VIEW -->
+  <div id="story-view">
+
+    <!-- Progress bars (generated by JS) -->
+    <div id="progress-bar"></div>
+
+    <!-- Header -->
+    <div id="header">
+      <div id="avatar" style="padding:0; overflow:hidden;">
+      <img src="averie-woodard-4nulm-JUYFo-unsplash.jpg" width="36" height="36" style="object-fit:cover; object-position: center top; border-radius:50%;" />
+    </div>
+      <div>
+        <div id="username">sarah_everyday</div>
+        <div id="time-ago">2h</div>
+      </div>
+      <div id="header-right">
+        <!-- More options (···) -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+        </svg>
+        <!-- Close (×) -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Story image / background -->
+    <div id="story-img"></div>
+
+    <!-- Tap zones -->
+    <div id="tap-left"></div>
+    <div id="tap-right"></div>
+
+    <!-- Bottom bar -->
+    <div id="bottom-bar">
+      <div id="msg-input">Send message...</div>
+      <div id="bottom-icons">
+        <!-- Heart -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <!-- Comment bubble -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <!-- Paper plane (send) -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- REVIEW VIEW -->
+  <div id="review-view">
+    <div id="review-title">Review posts</div>
+    <div id="review-subtitle">Tap any post to watch it again. When you're ready, continue to the survey.</div>
+    <div id="thumb-row"></div>
+    <div id="review-footer">
+      <div id="continue-btn">Continue to survey →</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="hint">Tap right side to advance &nbsp;·&nbsp; left side to go back</div>
+
+<script>
+// ─────────────────────────────────────────────
+// STORIES DATA
+// To use real images, replace `bg` with:
+//   bg: 'url("your-image.jpg") center/cover no-repeat'
+// Set emoji and caption to '' if not needed.
+// ─────────────────────────────────────────────
+const stories = [
+  {
+    bg:      'url("control-1.jpg") center/contain no-repeat',
+    caption: '',
+    label:   'Airplane',
+    type:    '',
+    duration: 10000
+  },
+  {
+    bg:      'url("filler3.jpg") center/contain no-repeat',
+    caption: '',
+    label:   'Exploring',
+    type:    '',
+    duration: 10000
+  },
+  {
+    bg:     'url("control-4.jpg") center/contain no-repeat',
+    caption: '',
+    label:   'Boat',
+    type:    '',
+    duration: 10000
+  }
+];
+
+// ─────────────────────────────────────────────
+// QUALTRICS REDIRECT
+// Replace this URL with your actual survey link
+// ─────────────────────────────────────────────
+const QUALTRICS_URL = 'https://your-qualtrics-survey-link-here';
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let current = 0;
+let timer   = null;
+let startTime = null;
+let animFrame = null;
+
+const storyImg   = document.getElementById('story-img');
+const progressEl = document.getElementById('progress-bar');
+const storyView  = document.getElementById('story-view');
+const reviewView = document.getElementById('review-view');
+const thumbRow   = document.getElementById('thumb-row');
+
+// ─────────────────────────────────────────────
+// BUILD PROGRESS BARS
+// ─────────────────────────────────────────────
+const barFills = [];
+stories.forEach((_, i) => {
+  const track = document.createElement('div');
+  track.className = 'bar-track';
+  const fill = document.createElement('div');
+  fill.className = 'bar-fill';
+  fill.id = 'bar' + i;
+  track.appendChild(fill);
+  progressEl.appendChild(track);
+  barFills.push(fill);
+});
+
+// ─────────────────────────────────────────────
+// RENDER A STORY
+// ─────────────────────────────────────────────
+function renderStory(i) {
+  const s = stories[i];
+  storyImg.style.background = s.bg;
+
+  // Only render caption overlay if caption text exists
+  const captionHTML = s.caption ? `
+    <div class="caption-overlay">
+      <div class="caption-box">
+        <div class="caption-text">${s.caption}</div>
+      </div>
+    </div>` : '';
+
+  storyImg.innerHTML = captionHTML;
+}
+
+// ─────────────────────────────────────────────
+// PROGRESS BAR ANIMATION (rAF-based)
+// ─────────────────────────────────────────────
+function animateBar(i) {
+  cancelAnimationFrame(animFrame);
+  startTime = performance.now();
+  const duration = stories[i].duration;
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const pct = Math.min(elapsed / duration * 100, 100);
+    barFills[i].style.width = pct + '%';
+    if (pct < 100) {
+      animFrame = requestAnimationFrame(step);
+    }
+  }
+  animFrame = requestAnimationFrame(step);
+}
+
+// ─────────────────────────────────────────────
+// START A STORY
+// ─────────────────────────────────────────────
+function startStory(i) {
+  clearTimeout(timer);
+  cancelAnimationFrame(animFrame);
+
+  barFills.forEach((b, idx) => {
+    b.style.transition = 'none';
+    b.style.width = idx < i ? '100%' : '0%';
+  });
+
+  renderStory(i);
+  animateBar(i);
+  timer = setTimeout(() => advance(1), stories[i].duration);
+}
+
+// ─────────────────────────────────────────────
+// ADVANCE / GO BACK
+// ─────────────────────────────────────────────
+function advance(dir) {
+  const next = current + dir;
+  if (next < 0) {
+    current = 0;
+    startStory(0);
+    return;
+  }
+  if (next >= stories.length) {
+    showReview();
+    return;
+  }
+  current = next;
+  startStory(current);
+}
+
+// ─────────────────────────────────────────────
+// REVIEW SCREEN
+// ─────────────────────────────────────────────
+function showReview() {
+  clearTimeout(timer);
+  cancelAnimationFrame(animFrame);
+  barFills.forEach(b => b.style.width = '100%');
+
+  storyView.style.display = 'none';
+  reviewView.style.display = 'flex';
+
+  thumbRow.innerHTML = '';
+  stories.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'thumb-item';
+
+    // Use bg image as thumbnail background if it's a real image
+    const thumbStyle = s.bg.startsWith('url') 
+      ? `background: ${s.bg}; background-size: cover; background-position: center;`
+      : `background: ${s.bg};`;
+
+    row.innerHTML = `
+      <div class="thumb-icon" style="${thumbStyle}"></div>
+      <div>
+        <div class="thumb-label">${s.label}</div>
+        <div class="thumb-type">${s.type}</div>
+      </div>
+      <div class="thumb-arrow">›</div>
+    `;
+    row.addEventListener('click', () => {
+      current = i;
+      storyView.style.display = 'flex';
+      reviewView.style.display = 'none';
+      startStory(i);
+    });
+    thumbRow.appendChild(row);
+  });
+}
+
+// ─────────────────────────────────────────────
+// TAP ZONES
+// ─────────────────────────────────────────────
+document.getElementById('tap-left').addEventListener('click',  () => advance(-1));
+document.getElementById('tap-right').addEventListener('click', () => advance(1));
+
+// ─────────────────────────────────────────────
+// CONTINUE BUTTON
+// ─────────────────────────────────────────────
+document.getElementById('continue-btn').addEventListener('click', () => {
+  window.location.href = QUALTRICS_URL;
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+startStory(0);
+</script>
+</body>
+</html>
