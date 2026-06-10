@@ -228,20 +228,7 @@
   .thumb-type  { color: rgba(255,255,255,0.45); font-size: 11px; margin-top: 3px; }
   .thumb-arrow { margin-left: auto; color: rgba(255,255,255,0.3); font-size: 20px; }
 
-  #review-footer { padding: 14px 16px 20px; }
-  #continue-btn {
-    background: #fff;
-    color: #000;
-    border-radius: 28px;
-    padding: 12px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s;
-    letter-spacing: -0.1px;
-  }
-  #continue-btn:hover { background: #e5e5e5; }
+
 
   /* Hint */
   #hint {
@@ -318,9 +305,7 @@
     <div id="review-title">Review posts</div>
     <div id="review-subtitle">Tap any post to watch it again. When you're ready, continue to the survey.</div>
     <div id="thumb-row"></div>
-    <div id="review-footer">
-      <div id="continue-btn">Continue to survey →</div>
-    </div>
+
   </div>
 
 </div>
@@ -510,12 +495,7 @@ function showReview() {
 document.getElementById('tap-left').addEventListener('click',  () => advance(-1));
 document.getElementById('tap-right').addEventListener('click', () => advance(1));
 
-// ─────────────────────────────────────────────
-// CONTINUE BUTTON
-// ─────────────────────────────────────────────
-document.getElementById('continue-btn').addEventListener('click', () => {
-  window.location.href = QUALTRICS_URL;
-});
+
 
 // ─────────────────────────────────────────────
 // INIT
